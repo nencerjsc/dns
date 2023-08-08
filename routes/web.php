@@ -39,5 +39,9 @@ Route::group(['module'=>'Dns', 'namespace' => '\App\Modules\Dns\Controllers'], f
         Route::get('dns/zones', 'DnsApiController@zones');
         Route::get('dns/zone/{domain}', 'DnsApiController@get_zone');
         Route::post('dns/zone/create', 'DnsApiController@zone_create');
+        Route::get('dns/zone/delete/{domain}', 'DnsApiController@del_zone');
+        Route::post('dns/record/create', 'DnsApiController@create_record');
+        Route::post('dns/record/update', 'DnsApiController@update_record');
+        Route::post('dns/record/delete', 'DnsApiController@del_record');
     });
 });
