@@ -183,17 +183,31 @@ class DnsApiController
                             $name = strtolower($request->name);
                         }
 
-                        $ns1 = new Record();
-                        $ns1->type = strtoupper($request->type);
-                        $ns1->content = strtolower($request->value);
-                        $ns1->name = $name;
-                        $ns1->domain = strtolower($zone->name);
-                        $ns1->domain_id = $zone->id;
-                        $ns1->ttl = $request->ttl ?? 3600;
-                        $ns1->prio = $request->prio ?? 0;
-                        $ns1->save();
+                        $record = Record::where('type', $request->type)->where('name', $name)->where('domain_id', $zone->id)->first();
+                        if($record){
 
-                        return response()->json(['error' => '00', 'message' => 'success', 'data' => $ns1->toArray()]);
+                            $record->content = strtolower($request->value);
+                            $record->ttl = $request->ttl ?? 3600;
+                            $record->prio = $request->prio ?? 0;
+                            $record->update();
+
+                            return response()->json(['error' => '00', 'message' => 'success', 'data' => $record->toArray()]);
+
+                        }else{
+
+                            $ns1 = new Record();
+                            $ns1->type = strtoupper($request->type);
+                            $ns1->content = strtolower($request->value);
+                            $ns1->name = $name;
+                            $ns1->domain = strtolower($zone->name);
+                            $ns1->domain_id = $zone->id;
+                            $ns1->ttl = $request->ttl ?? 3600;
+                            $ns1->prio = $request->prio ?? 0;
+                            $ns1->save();
+
+                            return response()->json(['error' => '00', 'message' => 'success', 'data' => $ns1->toArray()]);
+
+                        }
 
                     }else{
                         return response()->json(['error' => '01', 'message' => 'invalid_name', 'data' => null]);
@@ -211,51 +225,6 @@ class DnsApiController
         }
 
     }
-
-
-    public function update_record(Request $request)
-    {
-
-        if (isset($request->domain) && isset($request->type) && isset($request->name) && isset($request->value)) {
-            if (filter_var($request->domain, FILTER_VALIDATE_DOMAIN)) {
-
-                $zone = Zone::where('name', $request->domain)->first();
-                if ($zone) {
-                    if($request->name == "@"){
-                        $name  = $zone->name;
-                    }else{
-                        $name = strtolower($request->name);
-                    }
-
-                    $record = Record::where('type', $request->type)->where('name', $name)->where('domain_id', $zone->id)->first();
-                    if($record){
-
-                        $record->content = strtolower($request->value);
-                        $record->ttl = $request->ttl ?? 3600;
-                        $record->prio = $request->prio ?? 0;
-                        $record->update();
-
-                        return response()->json(['error' => '00', 'message' => 'success', 'data' => $record->toArray()]);
-
-
-                    }else{
-                        return response()->json(['error' => '01', 'message' => 'record_not_existed', 'data' => null]);
-                    }
-
-
-                } else {
-                    return response()->json(['error' => '01', 'message' => 'zone_not_existed', 'data' => null]);
-                }
-
-            } else {
-                return response()->json(['error' => '01', 'message' => 'domain_invalid', 'data' => null]);
-            }
-        } else {
-            return response()->json(['error' => '01', 'message' => 'invalid_post_data', 'data' => null]);
-        }
-
-    }
-
 
     public function del_record(Request $request)
     {
